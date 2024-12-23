@@ -129,41 +129,43 @@ def process_multiple_images_to_excel(image_paths):
 
     return output_file, random_filename, all_out_paths, title_results
 def convert_to_float(value):
-    """
-    Hàm chuyển đổi giá trị thành số float hợp lệ trong khoảng [0, 10].
-    Thực hiện thay thế các ký tự sai sót thường gặp (OCR) thành số hợp lệ.
-    Nếu giá trị không nằm trong khoảng [0, 10], chia giá trị theo số chữ số.
-    """
+    # Loại bỏ khoảng trắng ở đầu và cuối chuỗi
     value = value.strip()
+    
+    value = value.replace(',', '.')
+    if '-' in value:
+        value = value.replace('-', '.') if not value.startswith('-') else value
 
-    # Thay thế các ký tự sai sót thành số (bao gồm thêm 'g' -> '9')
-    replacements = {'O': '0', 'o': '0', 'I': '1', 'l': '1', 'S': '5', 'B': '8', 'g': '9'}
+    # Định nghĩa bảng thay thế ký tự
+    replacements = {
+        'O': '0', 'o': '0', 'I': '1', 'l': '1', 
+        'S': '5', 'B': '8', 'g': '9', 's': '5', 
+        'b': '8', 'G': '9'
+    }
+
     fixed_value = ''.join(replacements.get(c, c) for c in value)
 
     try:
-        # Chuyển đổi thành float
+        # Chuyển đổi giá trị chuỗi thành số thực
         numeric_value = float(fixed_value)
 
-        # Nếu giá trị nằm ngoài phạm vi từ 0 đến 10, chia theo số chữ số
         if numeric_value < 0 or numeric_value > 10:
             if len(fixed_value) == 2:
-                # Nếu có 2 chữ số, chia cho 10
                 numeric_value = numeric_value / 10
             elif len(fixed_value) == 3:
-                # Nếu có 3 chữ số, chia cho 100
                 numeric_value = numeric_value / 100
 
-        # Kiểm tra nếu giá trị nằm trong khoảng [0, 10]
+        # Chỉ trả về giá trị hợp lệ trong phạm vi [0, 10]
         if 0 <= numeric_value <= 10:
             return numeric_value
         else:
-            return None  # Trả về None nếu giá trị không hợp lệ
+            return None
     except ValueError:
-        # Nếu không thể chuyển đổi, trả về None
+        # Trả về None nếu không chuyển đổi được
         return None
 def process_multiple_images_to_groups(image_paths):
-    all_grouped_data = []  # Danh sách lưu dữ liệu đã nhóm
-    title_results = []  # Danh sách lưu kết quả tiêu đề
+    all_grouped_data = []  
+    title_results = []  
 
     for image_path in image_paths:
         # Xử lý OCR và tọa độ
@@ -206,28 +208,26 @@ def process_multiple_images_to_groups(image_paths):
 
                 first_text = row_sorted[0]["text"]
                 if first_text.isdigit() and int(first_text) > 0:
-                    indices_to_remove = [2, 3, 5]
+                    indices_to_remove = [0, 2, 3, 5]
                     row_sorted = [cell for i, cell in enumerate(row_sorted) if i not in indices_to_remove]
 
-                    if len(row_sorted) > 2:
-                        # Sử dụng hàm convert_to_float để xử lý phần tử thứ 2 và các phần tử sau
-                        element_2 = row_sorted[2]["text"]
-                        element_2_value = convert_to_float(element_2)
+                    if len(row_sorted) > 1:  # Kiểm tra phải có ít nhất 2 phần tử
+                        element_1 = row_sorted[1]["text"]
+                        element_1_value = convert_to_float(element_1)
 
-                        if element_2_value is not None:
-                            total_after_2 = sum(
-                                convert_to_float(cell["text"]) for cell in row_sorted[3:]
-                                if convert_to_float(cell["text"]) is not None  # Chỉ tính những giá trị hợp lệ
+                        if element_1_value is not None:
+                            total_after_1 = sum(
+                                convert_to_float(cell["text"]) for cell in row_sorted[2:]
+                                if convert_to_float(cell["text"]) is not None
                             )
 
-                            comparison_result = (total_after_2 == element_2_value)
+                            comparison_result = (total_after_1 == element_1_value)
 
-                            # Cập nhật giá trị text thành float
                             for cell in row_sorted:
                                 # Chuyển đổi text thành float nếu có thể
                                 converted_value = convert_to_float(cell["text"])
                                 if converted_value is not None:
-                                    cell["text"] = str(converted_value)  # Cập nhật text thành số float
+                                    cell["text"] = str(converted_value)
 
                                 cell["is_match"] = comparison_result  # true hoặc false
 
@@ -239,4 +239,4 @@ def process_multiple_images_to_groups(image_paths):
 
         all_grouped_data.append(valid_grouped_data)
 
-    return all_grouped_data, title_results , out_path
+    return all_grouped_data, title_results, out_path
