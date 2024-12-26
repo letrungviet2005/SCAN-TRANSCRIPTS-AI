@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from table_recognition.table_recognition import TableRecognizer, Table, Cell  # Import your TableRecognizer class
+from table_recognition.table_recognition import TableRecognizer, Table, Cell  
 
 
 def is_image_file(file_path: str) -> bool:
@@ -9,7 +9,6 @@ def is_image_file(file_path: str) -> bool:
     """
     valid_extensions = [".png", ".jpeg", ".jpg"]
     return any(file_path.lower().endswith(ext) for ext in valid_extensions)
-
 
 def add_borders_to_table(image: np.ndarray, table: Table) -> np.ndarray:
     """
@@ -29,15 +28,32 @@ def add_borders_to_table(image: np.ndarray, table: Table) -> np.ndarray:
 
     return image
 
-
 def process_image(file_path: str, table_list: list = None) -> list[list[int]]:
-    """
-    Xử lý hình ảnh và trả về danh sách các tọa độ dạng [x1, y1, x2, y2].
 
-    :param file_path: Đường dẫn đến file hình ảnh cần xử lý.
-    :param table_list: Danh sách các bảng (nếu cần sử dụng trước khi xử lý).
-    :return: Danh sách tọa độ các bảng và các ô trong bảng.
-    """
+    # def group_and_filter_coordinates(coordinates):
+    #     # Sắp xếp theo ymin
+    #     coordinates.sort(key=lambda x: x[1])
+
+    #     grouped_rows = []
+    #     current_row = []
+        
+    #     for coord in coordinates:
+    #         if not current_row or abs(coord[1] - current_row[-1][1]) <= 25:
+    #             current_row.append(coord)
+    #         else:
+    #             grouped_rows.append(current_row)
+    #             current_row = [coord]
+
+    #     if current_row:
+    #         grouped_rows.append(current_row)
+
+    #     filtered_rows = []
+    #     for row in grouped_rows:
+    #         filtered_row = [cell for idx, cell in enumerate(row) if idx not in {6,8,9,11 }]
+    #         filtered_rows.extend(filtered_row)
+
+    #     return filtered_rows
+
     try:
         # Kiểm tra nếu file là ảnh hợp lệ
         if not is_image_file(file_path):
@@ -53,24 +69,26 @@ def process_image(file_path: str, table_list: list = None) -> list[list[int]]:
 
         # Nhận diện bảng và ô
         tables: list[Table] = table_recognizer.process(image, table_list)
-
-        # Chỉnh sửa ảnh nếu bảng bị thiếu cạnh
+        
         for table in tables:
             image = add_borders_to_table(image, table)
 
         # Tiến hành nhận diện lại sau khi sửa ảnh
         tables: list[Table] = table_recognizer.process(image, table_list)
 
-        # Chuẩn bị danh sách tọa độ trả về
         coordinates = []
         for table in tables:
-            # Thêm tọa độ của bảng
-            coordinates.append([table.xmin, table.ymin, table.xmax, table.ymax])
-            # Thêm tọa độ các ô trong bảng
             for cell in table.cells:
                 coordinates.append([cell.xmin, cell.ymin, cell.xmax, cell.ymax])
+
+
+        # Áp dụng sắp xếp và lọc
+        # processed_coordinates = group_and_filter_coordinates(coordinates)
+
+        # print(f'Processed coordinates: {processed_coordinates}')
 
         return coordinates
 
     except Exception as e:
         raise RuntimeError(f"Error during processing: {e}")
+

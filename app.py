@@ -1,7 +1,6 @@
 from flask import Flask, request, send_file, jsonify
 import os
 from werkzeug.utils import secure_filename
-from process_ocr import process_multiple_images_to_excel  
 from process_ocr import process_multiple_images_to_groups
 from title_detection.api import predict_from_image  
 from flask_cors import CORS
@@ -42,12 +41,10 @@ def upload_images():
             file_paths.append(file_path)
 
     try:
-        # Thay thế hàm xử lý Excel bằng hàm xử lý nhóm
         all_grouped_data, title_results, out_path = process_multiple_images_to_groups(file_paths)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-    # Chuẩn bị kết quả phản hồi JSON
     response_data = {
         "title_results": title_results ,
         "data": [

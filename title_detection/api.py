@@ -8,23 +8,19 @@ model = YOLO("title_detection/models/best.pt")
 # Hàm xử lý ảnh và trả về kết quả
 def predict_from_image(image_bytes):
     try:
-        # Chuyển đổi bytes thành ảnh
         image = Image.open(io.BytesIO(image_bytes))
 
-        # Chạy mô hình YOLO trên ảnh
         results = model.predict(image, save=False)
-
-        # Trích xuất thông tin từ kết quả
         predictions = []
         for result in results:
-            boxes = result.boxes.xyxy.cpu().numpy()  # Tọa độ bbox (xmin, ymin, xmax, ymax)
-            classes = result.boxes.cls.cpu().numpy()  # Nhãn của lớp
-            confidences = result.boxes.conf.cpu().numpy()  # Độ tin cậy
+            boxes = result.boxes.xyxy.cpu().numpy()  
+            classes = result.boxes.cls.cpu().numpy()  
+            confidences = result.boxes.conf.cpu().numpy()  
             for box, cls, conf in zip(boxes, classes, confidences):
                 predictions.append({
-                    "label": model.names[int(cls)],  # Lấy tên nhãn từ model.names
-                    "confidence": float(conf),      # Độ tin cậy của dự đoán
-                    "bbox": [float(x) for x in box] # Tọa độ bbox
+                    "label": model.names[int(cls)], 
+                    "confidence": float(conf),     
+                    "bbox": [float(x) for x in box] 
                 })
 
         return {"predictions": predictions}
