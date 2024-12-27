@@ -53,6 +53,7 @@ def process_image_with_coordinates(image_path, coordinates_list):
 
     predictions = predictions_result["predictions"]
 
+    title_detected = False
     for prediction in predictions:
         if prediction["confidence"] > 0.5:
             box = prediction["bbox"]
@@ -67,21 +68,7 @@ def process_image_with_coordinates(image_path, coordinates_list):
             })
 
             cv2.rectangle(overlay, (min_x, min_y), (max_x, max_y), (0, 0, 255), 2)
-
-    if title_results:
-        print("Title detected. Skipping other cells.")
-        overlay_pil = Image.fromarray(overlay)
-        final_img_pil = Image.blend(annotated_img_pil, overlay_pil, 0.4)
-
-        output_dir = "image_color"
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-
-        random_filename = f"{uuid.uuid4().hex}.jpg"
-        output_path = os.path.join(output_dir, random_filename)
-        final_img_pil.save(output_path)
-
-        return [], output_path, title_results
+            title_detected = True
 
     for row_idx, coords in enumerate(coordinates_list):
         if len(coords) != 4:
@@ -90,26 +77,30 @@ def process_image_with_coordinates(image_path, coordinates_list):
 
         min_x, min_y, max_x, max_y = coords
 
+        # Nếu phát hiện title, chỉ tô màu mà không quét VietOCR
+        if title_detected:
+            color = tuple(np.random.randint(0, 256, size=3).tolist())
+            cv2.rectangle(overlay, (min_x, min_y), (max_x, max_y), color, cv2.FILLED)
+            draw.text((min_x, min_y - 1), "", font=font, fill=(174, 26, 31))
+        else:
+            cropped_img = enhanced_img_pil.crop((min_x, min_y, max_x, max_y + 1))
+            text, prob = detector.predict(cropped_img, return_prob=True)
 
-        # Xử lý các phần tử khác
-        cropped_img = enhanced_img_pil.crop((min_x, min_y, max_x, max_y + 1))
-        text, prob = detector.predict(cropped_img, return_prob=True)
+            if text.lower() == "contraction":
+                text = ""  
 
-        if text.lower() == "contraction" :
-            text = ""  
+            results.append({
+                "coordinates": coords,
+                "text": text,
+                "confidence": prob
+            })
 
-        results.append({
-            "coordinates": coords,
-            "text": text,
-            "confidence": prob
-        })
-
-        color = tuple(np.random.randint(0, 256, size=3).tolist())
-        cv2.rectangle(overlay, (min_x, min_y), (max_x, max_y), color, cv2.FILLED)
-        draw.text((min_x, min_y - 1), text, font=font, fill=(174, 26, 31))
+            color = tuple(np.random.randint(0, 256, size=3).tolist())
+            cv2.rectangle(overlay, (min_x, min_y), (max_x, max_y), color, cv2.FILLED)
+            draw.text((min_x, min_y - 1), text, font=font, fill=(174, 26, 31))
 
     overlay_pil = Image.fromarray(overlay)
-    final_img_pil = Image.blend(annotated_img_pil, overlay_pil, 0.4 )
+    final_img_pil = Image.blend(annotated_img_pil, overlay_pil, 0.4)
 
     output_dir = "image_color"
     if not os.path.exists(output_dir):
