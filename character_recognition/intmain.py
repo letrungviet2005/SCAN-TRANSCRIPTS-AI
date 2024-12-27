@@ -85,7 +85,7 @@ def process_image_with_coordinates(image_path, coordinates_list):
             draw.text((min_x, min_y - 1), "", font=font, fill=(174, 26, 31))
         else:
             cropped_img = enhanced_img_pil.crop((min_x, min_y, max_x, max_y + 1))
-            result_img = enhance_text_image(cropped_img)
+            # result_img = enhance_text_image(cropped_img)
             text, prob = detector.predict(cropped_img, return_prob=True)
 
 
