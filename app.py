@@ -41,18 +41,18 @@ def upload_images():
             file_paths.append(file_path)
 
     try:
-        all_grouped_data, title_results, out_path = process_multiple_images_to_groups(file_paths)
+        all_grouped_data, title_results, out_paths = process_multiple_images_to_groups(file_paths)  # out_paths là danh sách
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
     response_data = {
-        "title_results": title_results ,
+        "title_results": title_results,
         "data": [
             {
                 "image": f"/uploads/{os.path.basename(out_path)}",
                 "list": grouped_rows
             }
-            for file_path, grouped_rows in zip(file_paths, all_grouped_data)
+            for out_path, grouped_rows in zip(out_paths, all_grouped_data)
         ]
     }
 
