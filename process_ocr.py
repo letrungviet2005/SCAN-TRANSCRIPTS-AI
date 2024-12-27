@@ -155,41 +155,36 @@ def convert_to_float(value):
         # Trả về None nếu không chuyển đổi được
         return None
 def process_multiple_images_to_groups(image_paths):
-    all_grouped_data = []  
-    title_results = []  
+    all_grouped_data = []
+    title_results = []
+    out_paths = []  # Thêm danh sách này
 
     for image_path in image_paths:
+        # Xử lý ảnh và lấy đường dẫn đầu ra
         ocr_results, out_path, title_result = process_image_with_coordinates(image_path, process_image(image_path))
+        
+        # Lưu đường dẫn đầu ra
+        out_paths.append(out_path)  # Thêm đường dẫn đầu ra vào danh sách
 
         # Lưu kết quả tiêu đề
         title_results.append(title_result)
 
+        # Tiếp tục xử lý nhóm dữ liệu...
         threshold = 10
-
-        # Lấy tất cả tọa độ Y từ kết quả OCR
         y_coords = [result['coordinates'][1] for result in ocr_results]
-
-        # Gom nhóm các tọa độ Y vào các hàng
         y_groups = group_coordinates(y_coords, threshold)
-
-        # Khởi tạo danh sách lưu các hàng
         grouped_data = [[] for _ in range(len(y_groups))]
 
-        # Ghi dữ liệu OCR vào các hàng tương ứng
         for result in ocr_results:
             coords = result['coordinates']
             y = coords[1]
-
-            # Tìm hàng gần nhất
             row_idx = min(range(len(y_groups)), key=lambda i: abs(y - y_groups[i]))
-
             grouped_data[row_idx].append({
                 "text": result["text"],
                 "confidence": result["confidence"],
                 "sort_key": coords[0],
             })
 
-        # Lọc và nhóm dữ liệu hợp lệ
         valid_grouped_data = []
         for row in grouped_data:
             if len(row) < 11: 
@@ -197,32 +192,27 @@ def process_multiple_images_to_groups(image_paths):
 
             if row and isinstance(row[0]["sort_key"], int) and row[0]["sort_key"] > 0:
                 row_sorted = sorted(row, key=lambda cell: cell["sort_key"])
-
                 first_text = row_sorted[0]["text"]
+
                 if first_text.isdigit() and int(first_text) > 0:
                     indices_to_remove = [0, 2, 3, 5]
                     row_sorted = [cell for i, cell in enumerate(row_sorted) if i not in indices_to_remove]
 
-                    if len(row_sorted) > 1:  # Kiểm tra phải có ít nhất 2 phần tử
+                    if len(row_sorted) > 1:
                         element_1 = row_sorted[1]["text"]
                         element_1_value = convert_to_float(element_1)
-
                         if element_1_value is not None:
                             total_after_1 = sum(
                                 convert_to_float(cell["text"]) for cell in row_sorted[2:]
                                 if convert_to_float(cell["text"]) is not None
                             )
-
                             comparison_result = (total_after_1 == element_1_value)
-
                             for cell in row_sorted:
                                 converted_value = convert_to_float(cell["text"])
                                 if converted_value is not None:
                                     cell["text"] = str(converted_value)
+                                cell["is_match"] = comparison_result
 
-                                cell["is_match"] = comparison_result  # Gắn cờ true hoặc false
-
-                        # Chỉ giữ lại tối đa 2 phần tử đầu tiên
                         row_sorted = row_sorted[:2]
 
                     valid_grouped_data.append([{
@@ -233,4 +223,4 @@ def process_multiple_images_to_groups(image_paths):
 
         all_grouped_data.append(valid_grouped_data)
 
-    return all_grouped_data, title_results, out_path
+    return all_grouped_data, title_results, out_paths
