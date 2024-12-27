@@ -5,7 +5,6 @@ from openpyxl.styles import Alignment, PatternFill
 from table_recognition.main import process_image
 from character_recognition.intmain import process_image_with_coordinates
 
-# Hàm gom nhóm tọa độ
 def group_coordinates(coordinates, threshold):
     grouped = []
     for coord in sorted(coordinates):
@@ -132,7 +131,7 @@ def convert_to_float(value):
     replacements = {
         'O': '0', 'o': '0', 'I': '1', 'l': '1', 
         'S': '5', 'B': '8', 'g': '9', 's': '5', 
-        'b': '8', 'G': '9'
+        'b': '8', 'G': '9', 'A' : '1', 
     }
 
     fixed_value = ''.join(replacements.get(c, c) for c in value)
@@ -160,13 +159,11 @@ def process_multiple_images_to_groups(image_paths):
     title_results = []  
 
     for image_path in image_paths:
-        # Xử lý OCR và tọa độ
         ocr_results, out_path, title_result = process_image_with_coordinates(image_path, process_image(image_path))
 
         # Lưu kết quả tiêu đề
         title_results.append(title_result)
 
-        # Ngưỡng để gom nhóm hàng/cột
         threshold = 10
 
         # Lấy tất cả tọa độ Y từ kết quả OCR
@@ -195,6 +192,9 @@ def process_multiple_images_to_groups(image_paths):
         # Lọc và nhóm dữ liệu hợp lệ
         valid_grouped_data = []
         for row in grouped_data:
+            if len(row) < 11: 
+                continue
+
             if row and isinstance(row[0]["sort_key"], int) and row[0]["sort_key"] > 0:
                 row_sorted = sorted(row, key=lambda cell: cell["sort_key"])
 
@@ -216,12 +216,14 @@ def process_multiple_images_to_groups(image_paths):
                             comparison_result = (total_after_1 == element_1_value)
 
                             for cell in row_sorted:
-                                # Chuyển đổi text thành float nếu có thể
                                 converted_value = convert_to_float(cell["text"])
                                 if converted_value is not None:
                                     cell["text"] = str(converted_value)
 
-                                cell["is_match"] = comparison_result  # true hoặc false
+                                cell["is_match"] = comparison_result  # Gắn cờ true hoặc false
+
+                        # Chỉ giữ lại tối đa 2 phần tử đầu tiên
+                        row_sorted = row_sorted[:2]
 
                     valid_grouped_data.append([{
                         "text": cell["text"],

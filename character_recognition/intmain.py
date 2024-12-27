@@ -83,7 +83,6 @@ def process_image_with_coordinates(image_path, coordinates_list):
 
         return [], output_path, title_results
 
-    # Xử lý từng tọa độ trong danh sách
     for row_idx, coords in enumerate(coordinates_list):
         if len(coords) != 4:
             print(f"Invalid coordinates format: {coords}")
@@ -96,7 +95,7 @@ def process_image_with_coordinates(image_path, coordinates_list):
         cropped_img = enhanced_img_pil.crop((min_x, min_y, max_x, max_y + 1))
         text, prob = detector.predict(cropped_img, return_prob=True)
 
-        if text.lower() == "contraction" or prob < 0.5:
+        if text.lower() == "contraction" :
             text = ""  
 
         results.append({
