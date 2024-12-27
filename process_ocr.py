@@ -129,15 +129,21 @@ def convert_to_float(value):
 
     # Định nghĩa bảng thay thế ký tự
     replacements = {
-        'O': '0', 'o': '0', 'I': '1', 'l': '1', 
-        'S': '5', 'B': '8', 'g': '9', 's': '5', 
-        'b': '8', 'G': '9', 'A' : '1', 
-    }
+    'O': '0', 'o': '0', 'Q': '0', 'D': '0',  
+    'I': '1', 'l': '1', '|': '1', '/': '1', '\\': '1', 'A': '1', 'T': '1',  
+    'Z': '2', 'z': '2', 'R': '2',  
+    'E': '3', 'e': '3', '€': '3',  
+    'h': '4', 'H': '4', '#': '4',  
+    'S': '5', 's': '5', '$': '5',  
+    'b': '6', 'G': '6', 'g': '6', 'q': '6',  
+    'L': '7', 'T': '7', 'J': '7',  
+    'B': '8', '&': '8', '8': '8',  
+    'P': '9', 'g': '9', 'q': '9',  
+}
 
     fixed_value = ''.join(replacements.get(c, c) for c in value)
 
     try:
-        # Chuyển đổi giá trị chuỗi thành số thực
         numeric_value = float(fixed_value)
 
         if numeric_value < 0 or numeric_value > 10:
@@ -185,9 +191,14 @@ def process_multiple_images_to_groups(image_paths):
                 "sort_key": coords[0],
             })
 
+        if grouped_data:
+            max_row_length = max(len(row) for row in grouped_data)
+        else:
+            max_row_length = 0 
         valid_grouped_data = []
+
         for row in grouped_data:
-            if len(row) < 11: 
+            if len(row) < (max_row_length * 0.9 ):  
                 continue
 
             if row and isinstance(row[0]["sort_key"], int) and row[0]["sort_key"] > 0:
