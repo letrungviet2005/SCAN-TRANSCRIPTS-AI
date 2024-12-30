@@ -1,7 +1,6 @@
 from vietocr.tool.predictor import Predictor
 from vietocr.tool.config import Cfg
 from PIL import Image, ImageDraw, ImageFont
-from character_recognition.imageprocessing import enhance_text_image
 import cv2
 import numpy as np
 import torch
@@ -87,7 +86,6 @@ def process_image_with_coordinates(image_path, coordinates_list):
             cropped_img = enhanced_img_pil.crop((min_x, min_y, max_x, max_y + 1))
             # result_img = enhance_text_image(cropped_img)
             text, prob = detector.predict(cropped_img, return_prob=True)
-
 
             results.append({
                 "coordinates": coords,

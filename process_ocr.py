@@ -152,7 +152,6 @@ def convert_to_float(value):
             elif len(fixed_value) == 3:
                 numeric_value = numeric_value / 100
 
-        # Chỉ trả về giá trị hợp lệ trong phạm vi [0, 10]
         if 0 <= numeric_value <= 10:
             return numeric_value
         else:

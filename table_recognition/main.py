@@ -73,7 +73,6 @@ def process_image(file_path: str, table_list: list = None) -> list[list[int]]:
         for table in tables:
             image = add_borders_to_table(image, table)
 
-        # Tiến hành nhận diện lại sau khi sửa ảnh
         tables: list[Table] = table_recognizer.process(image, table_list)
 
         coordinates = []
