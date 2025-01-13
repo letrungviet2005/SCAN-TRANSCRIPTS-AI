@@ -1,7 +1,7 @@
 ﻿<div style="font-family: Arial, sans-serif; line-height: 1.6;">
   <h1 style="text-align: center;">About the Project</h1>
   <p>
-    Hello, I'm Viet! This project was created to scan grade tables and generate results for VKU University, where I am currently studying. The goal is to streamline the process of entering grades for the academic affairs office. This project is a collaborative effort with the support of my friends.
+    Hello, I'm Viet! This project was created to scan grade tables and generate results for VKU University, where I am currently studying. The goal is to streamline the process of entering grades for the academic affairs office. This project is a collaborative effort with the support of my team.
   </p>
   <h2>How It Works</h2>
   <h3>1. Input the Image</h3>
