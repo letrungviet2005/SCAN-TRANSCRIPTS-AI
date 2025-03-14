@@ -62,10 +62,6 @@ def draw(image, table_list: List[Table]):
 
 
 def show(img, name="disp", width=1000):
-    """
-    name: name of window, should be name of img
-    img: source of img, should in type ndarray
-    """
     cv2.namedWindow(name, cv2.WINDOW_GUI_NORMAL)
     cv2.resizeWindow(name, width, 1000)
     cv2.imshow(name, img)
@@ -87,7 +83,6 @@ class TableRecognizer:
         pass
 
     def process(self, image, table_list: list) -> List[Table]:
-        # bin
         gray_image = ensure_gray(image)
         bin_image = cv2.adaptiveThreshold(
             ~gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, -10
@@ -102,11 +97,9 @@ class TableRecognizer:
         mask = cv2.bitwise_or(vline, hline)
         mask = cv2.dilate(mask, np.ones((3, 3)))
 
-        # get hv table from mask
         cnts = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
         cnts, hiers = cnts if len(cnts) == 2 else cnts[1:]
         if hiers is None:
-            # TODO: there is no table
             pass
         else:
             hiers = hiers[0]
@@ -143,7 +136,6 @@ class TableRecognizer:
     @classmethod
     def get_unique_instance(cls):
         if cls.instance is None:
-            # initialize instance
             cls.instance = cls()
         return cls.instance
     
@@ -160,7 +152,6 @@ class TableRecognizer:
                 h_intersect = min(gymax, fymax) - max(gymin, fymin)
                 intersect_area = 0 if (w_intersect < 0) or (h_intersect < 0) else w_intersect * h_intersect
                 
-                # delete grid_cell that has a large intersect area with one func_cell
                 if (intersect_area / grid_area) > intersect_ratio:
                     del grid_cells[idx]
                     continue
@@ -173,25 +164,22 @@ class TableRecognizer:
         cols = []
         grid_cells = []
 
-        # classify the bboxes from raw output of model
         for idx, score in enumerate(results["scores"].tolist()):
             if score < self.__thresh:
                 continue
-            bbox = results["boxes"][idx].tolist() # xmin, ymin, xmax, ymax
+            bbox = results["boxes"][idx].tolist() 
             if results["labels"][idx] == 1:
                 cols.append(bbox)
             elif results["labels"][idx] == 2:
                 rows.append(bbox)
-            elif results["labels"][idx] in (5,): # span cell only
+            elif results["labels"][idx] in (5,): 
                 func_cells.append(bbox)
         
-        # extract all grid cells from intersection between a row and a column 
         for row in rows:
             for col in cols:
                 xmin, ymin, xmax, ymax = col[0], row[1], col[2], row[3]
                 grid_cells.append([xmin, ymin, xmax, ymax])
         
-        # eliminate oversegmentation on grid_cells
         if (not oversegment) or (0 <= oversegment <= 1):
             self.__non_oversegment(grid_cells, func_cells, intersect_ratio = oversegment)
 

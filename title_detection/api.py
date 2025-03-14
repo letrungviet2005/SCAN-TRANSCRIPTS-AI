@@ -2,10 +2,8 @@ from ultralytics import YOLO
 from PIL import Image
 import io
 
-# Tải mô hình YOLO
 model = YOLO("title_detection/models/best.pt")
 
-# Hàm xử lý ảnh và trả về kết quả
 def predict_from_image(image_bytes):
     try:
         image = Image.open(io.BytesIO(image_bytes))

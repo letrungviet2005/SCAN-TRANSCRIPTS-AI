@@ -23,7 +23,6 @@ detector = Predictor(config)
 
 def process_image_with_coordinates(image_path, coordinates_list):
     try:
-        # Đọc ảnh từ file
         img = Image.open(image_path).convert("RGB")
         original_img = np.array(img)
         enhanced_img_pil = Image.fromarray(original_img)
@@ -77,7 +76,6 @@ def process_image_with_coordinates(image_path, coordinates_list):
 
         min_x, min_y, max_x, max_y = coords
 
-        # Nếu phát hiện title, chỉ tô màu mà không quét VietOCR
         if title_detected:
             color = tuple(np.random.randint(0, 256, size=3).tolist())
             cv2.rectangle(overlay, (min_x, min_y), (max_x, max_y), color, cv2.FILLED)

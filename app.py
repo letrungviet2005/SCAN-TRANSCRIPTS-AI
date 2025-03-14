@@ -18,7 +18,6 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'bmp', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['RESULTS_FOLDER'] = RESULTS_FOLDER
 
-# Kiểm tra định dạng tệp
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -49,7 +48,7 @@ def upload_images():
         "title_results": title_results,
         "data": [
             {
-                "image": f"/uploads/{os.path.basename(out_path)}",  # Mỗi ảnh có đường dẫn riêng
+                "image": f"/uploads/{os.path.basename(out_path)}", 
                 "list": grouped_rows
             }
             for out_path, grouped_rows in zip(out_paths, all_grouped_data)
@@ -68,7 +67,6 @@ def serve_uploaded_file(filename):
     except Exception as e:
         return jsonify({"error": f"File not found: {str(e)}"}), 404
 
-# API để tải xuống file Excel đã tạo
 @app.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
     try:
@@ -77,9 +75,7 @@ def download_file(filename):
         return jsonify({"error": str(e)}), 400
 
 if __name__ == '__main__':
-    # Tạo thư mục nếu chưa có
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     os.makedirs(app.config['RESULTS_FOLDER'], exist_ok=True)
     
-    # Chạy Flask app
     app.run(debug=True, host='0.0.0.0', port=5000)
