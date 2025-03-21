@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from process_ocr import process_multiple_images_to_groups
 from title_detection.api import predict_from_image  
 from flask_cors import CORS
+from export_to_excel import export_to_excel 
 
 app = Flask(__name__)
 
@@ -41,6 +42,7 @@ def upload_images():
 
     try:
         all_grouped_data, title_results, out_paths = process_multiple_images_to_groups(file_paths)
+        excel_file_path = export_to_excel(all_grouped_data, app.config['RESULTS_FOLDER'])
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -48,11 +50,12 @@ def upload_images():
         "title_results": title_results,
         "data": [
             {
-                "image": f"/uploads/{os.path.basename(out_path)}", 
+                "image": f"/uploads/{os.path.basename(out_path)}",
                 "list": grouped_rows
             }
             for out_path, grouped_rows in zip(out_paths, all_grouped_data)
-        ]
+        ],
+        "excel_download_link": f"/download/{os.path.basename(excel_file_path)}"
     }
 
     return jsonify(response_data)
